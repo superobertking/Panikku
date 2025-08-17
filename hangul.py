@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+from test_bank import TestBank
+
 
 # Glossary
 # Hangul: 谚文 (한글)
 
-cheatsheet = "\
+cheatsheet = """\
 ㅏ a
-ㅓeo: 熬  (接近拼音ao,收口腔,发音位置更靠前)
-ㅗ o: 哦？(接近拼音 o,收口腔,位置更靠后)
+ㅓeo: 熬 (接近拼音ao,收口腔,发音位置更靠前,或国际音标ə(or的o))
+ㅗ o: 哦 (接近拼音 o,收口腔,位置更靠后)
 ㅜ u: 卷嘴う
-ㅡeu: 欸 (拉长嘴)
+ㅡeu: 呃 (拉长嘴)
 ㅣ i
-"
+"""
 
 consonent = {
     "base": ("a  eo  o  u   eu i",
@@ -25,8 +25,11 @@ consonent = {
 }
 
 def gen_hangul_table():
-    return { hangul: romaja
+    table = { hangul: romaja
             for name in ("base",)
             for romaja, hangul in zip(consonent[name][0].split(),
                                       consonent[name][1].split())
             }
+    return TestBank(voice='Jian (Premium)',
+                    table=table,
+                    cheatsheet=cheatsheet)

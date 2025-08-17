@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+from test_bank import TestBank
+
 
 # Glossary
 # Hiragana: 平仮名（ひらがな）
@@ -143,4 +143,4 @@ def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=Fal
                            for e, c in zip(*kana['yoon_vowels'])})
 
     #  print(kana_table)
-    return kana_table
+    return TestBank(table=kana_table, voice='Kyoko')

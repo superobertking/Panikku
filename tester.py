@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import random
 import os
 import time
+from dataclasses import dataclass
+
+from test_bank import TestBank
 
 
 class HistItem:
@@ -60,14 +60,22 @@ class Sampler:
         return self._weights
 
 
+@dataclass
+class TesterOptions:
+    say: bool = False
+
+
 class Tester:
     """\
     Tester class.
-    TODO: add adjustable parameters
     """
 
-    def __init__(self, test_bank):
-        self._test_bank = test_bank
+    def __init__(self, test_bank: TestBank, options: TesterOptions = None):
+        # shorthand of table
+        self._table = test_bank.table
+        # store the original bank that contains other settings
+        self._bank = test_bank
+        self._options = TesterOptions() if options is None else options
 
     @staticmethod
     def _time_user_input():
@@ -111,12 +119,21 @@ class Tester:
 
     def __call__(self):
         histogram = {}
-        sampler = Sampler(self._test_bank.keys(), [1.0] * len(self._test_bank))
+        sampler = Sampler(self._table.keys(), [1.0] * len(self._table))
+
+        print("Press CTRL-D (^D) to finish test and print testing weights.\n"
+              "Type 'wait' to take a break.\n"
+              "Type '?' to show cheatsheet.\n")
+
+        redo_test = False
 
         # Infinite loop
         while True:
-            idx, test_key = sampler()
-            test_value = self._test_bank[test_key]
+            if redo_test:
+                redo_test = False
+            else:
+                idx, test_key = sampler()
+            test_value = self._table[test_key]
 
             # Start once test
             print(f"'{test_key}' is: ", end='')
@@ -129,10 +146,19 @@ class Tester:
             # workflow commands
             if user_input == 'wait':
                 while True:
-                    print("Type 'break' to continue... ", end='')
-                    if input().strip() == 'break':
+                    print("Type 'c' to continue... ", end='')
+                    if input().strip() == 'c':
                         break
+                redo_test = True
                 continue  # Go into the next loop (word)
+            elif user_input == '?':
+                if self._bank.cheatsheet is not None:
+                    print("Cheatsheet:")
+                    print(self._bank.cheatsheet)
+                else:
+                    print("No cheatsheet found!")
+                redo_test = True
+                continue
 
             correct = test_value == user_input
 
@@ -141,9 +167,9 @@ class Tester:
                 print(f"Correct! Time elapsed {duration:6f}s.")
             else:
                 print(f"Wrong! It should be '{test_value}'.")
-            # Speak the word in Japanese
-            # TODO: pluggable component
-            os.system(f"say -v Kyoko {test_key} &")
+            # Say the word
+            if self._options.say and self._bank.voice is not None:
+                os.system(f"say -v '{self._bank.voice}' {test_key} &")
 
             # Update weights
             sampler.update_weights(lambda ws: self._update_weights(
@@ -163,7 +189,7 @@ class Tester:
             for w, s, c in stat:
                 print(f'{c}: {s}, {w:6f}')
 
-            unvisited = set(histogram.keys()) ^ set(self._test_bank.keys())
+            unvisited = set(histogram.keys()) ^ set(self._table.keys())
             if unvisited:
                 print('Unvisited vocabularies:')
                 print(unvisited)

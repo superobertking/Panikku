@@ -1,16 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from tester import Tester
+from tester import Tester, TesterOptions
 from kana import gen_kana_table
+from hangul import gen_hangul_table
+
+import argparse
+
+parser = argparse.ArgumentParser("Panikku")
+parser.add_argument('--no-say', action='store_true', default=False,
+                    help="Say the word using TTS after each quiz")
 
 
 def gen_testset():
-    kana_table = gen_kana_table(type='kata')
-    return kana_table
+    #  table = gen_kana_table(type='kata')
+    table = gen_hangul_table()
+    return table
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+
+    options = TesterOptions(say=not args.no_say)
+
     test_bank = gen_testset()
-    tester = Tester(test_bank)
+    tester = Tester(test_bank, options)
     tester()
