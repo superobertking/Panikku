@@ -1,4 +1,4 @@
-from test_bank import TestBank
+from test_bank import TestBank, find_voice
 
 
 # Glossary
@@ -143,4 +143,4 @@ def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=Fal
                            for e, c in zip(*kana['yoon_vowels'])})
 
     #  print(kana_table)
-    return TestBank(table=kana_table, voice='Kyoko')
+    return TestBank(table=kana_table, voice=find_voice('ja_JP'))

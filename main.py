@@ -24,5 +24,14 @@ if __name__ == '__main__':
     options = TesterOptions(say=not args.no_say)
 
     test_bank = gen_testset()
+
+    if options.say and test_bank.voice is not None:
+        print("Using voice:", test_bank.voice)
+        if not 'Premium' in test_bank.voice and not 'Enhanced' in test_bank.voice:
+            print("""\
+For best TTS voice clarity, please download a Premium or Enhanced voice in
+System Settings -> Accessibility -> Spoken Content -> System Voice -> Manage Voices
+""")
+
     tester = Tester(test_bank, options)
     tester()

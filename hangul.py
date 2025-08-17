@@ -1,4 +1,4 @@
-from test_bank import TestBank
+from test_bank import TestBank, find_voice
 
 
 # Glossary
@@ -30,6 +30,6 @@ def gen_hangul_table():
             for romaja, hangul in zip(consonent[name][0].split(),
                                       consonent[name][1].split())
             }
-    return TestBank(voice='Jian (Premium)',
+    return TestBank(voice=find_voice('ko_KR'),
                     table=table,
                     cheatsheet=cheatsheet)
