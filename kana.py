@@ -24,9 +24,12 @@ hira_normal = (
 hira_normal_special = {
     "や": "ya", "ゆ": "yu", "よ": "yo",
     "わ": "wa", "を": "wo",
-    "ん": "nn",
-    # overwrite below
-    #  "し": "shi", "ち": "chi", "つ": "tsu", "ふ": "fu"
+    "ん": ["nn", "n"],
+    # overwrite alias below
+    "し": ["shi", "si"],
+    "ち": ["chi", "ti"],
+    "つ": ["tsu", "tu"],
+    "ふ": ["fu", "hu"],
 }
 hira_dakuon = (
     ("g", "がぎぐげご"),
@@ -37,7 +40,7 @@ hira_dakuon = (
 )
 hira_dakuon_special = {
     "じ": "ji",
-    # "ぢ": "dji"
+    "ぢ": ["ji", "dji"]
 }
 hira_yoon_normal = (
     ("ky", "き"),
@@ -73,7 +76,12 @@ kata_normal = (
 kata_normal_special = {
     "ヤ": "ya", "ユ": "yu", "ヨ": "yo",
     "ワ": "wa", "ヲ": "wo",
-    "ン": "nn",
+    "ン": ["nn", "n"],
+    # overwrite alias below
+    "シ": ["shi", "si"],
+    "チ": ["chi", "ti"],
+    "ツ": ["tsu", "tu"],
+    "フ": ["fu", "hu"],
 }
 kata_dakuon = (
     ("g", "ガギグゲゴ"),

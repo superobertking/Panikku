@@ -133,7 +133,7 @@ class Tester:
                 redo_test = False
             else:
                 idx, test_key = sampler()
-            test_value = self._table[test_key]
+                test_value = self._table[test_key]
 
             # Start once test
             print(f"'{test_key}' is: ", end='')
@@ -160,13 +160,19 @@ class Tester:
                 redo_test = True
                 continue
 
-            correct = test_value == user_input
+            if isinstance(test_value, list):
+                correct = user_input in test_value
+            else:
+                correct = user_input == test_value
 
             # Display result
             if correct:
                 print(f"Correct! Time elapsed {duration:6f}s.")
             else:
-                print(f"Wrong! It should be '{test_value}'.")
+                test_value_str = test_value
+                if isinstance(test_value, list):
+                    test_value_str = '/'.join(test_value)
+                print(f"Wrong! It should be '{test_value_str}'.")
             # Say the word
             if self._options.say and self._bank.voice is not None:
                 os.system(f"say -v '{self._bank.voice}' {test_key} &")
