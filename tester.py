@@ -121,6 +121,8 @@ class Tester:
         histogram = {}
         sampler = Sampler(self._table.keys(), [1.0] * len(self._table))
 
+        print("Loaded test set size:", len(self._table))
+
         print("Press CTRL-D (^D) to finish test and print testing weights.\n"
               "Type 'wait' to take a break.\n"
               "Type '?' to show cheatsheet.\n")
@@ -150,6 +152,8 @@ class Tester:
                     print(self._bank.cheatsheet)
                 else:
                     print("No cheatsheet found!")
+                    redo_test = True
+                    continue
             # hack: ? will fall through
             if user_input in ['?', 'wait']:
                 should_exit = False
@@ -198,11 +202,13 @@ class Tester:
             weights = sampler.get_weights()
             stat = [(weights[s.idx], s, c) for c, s in histogram.items()]
             stat.sort()
-            print('Correct rate stats:')
+            print('Correct rate stats and testing weights:')
             for w, s, c in stat:
                 print(f'{c}: {s}, {w:6f}')
 
             unvisited = set(histogram.keys()) ^ set(self._table.keys())
             if unvisited:
-                print('Unvisited vocabularies:')
-                print(unvisited)
+                if len(unvisited) < 100:
+                    print(f'Unvisited vocabularies: {unvisited}')
+                else:
+                    print(f'Unvisited vocabularies count: {len(unvisited)}')

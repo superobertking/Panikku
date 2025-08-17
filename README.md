@@ -93,9 +93,5 @@ Unvisited vocabularies:
 
 ## TODO
 
- - More dataset
- - A better API
- - Adjustable parameters
  - Customizable weight algorithm
- - More `TODO`s in source code
-
+ - Typing test
