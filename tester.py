@@ -138,28 +138,35 @@ class Tester:
             # Start once test
             print(f"'{test_key}' is: ", end='')
             user_input, duration = self._time_user_input()
-            # Test once finished
 
+            # ^C or ^D, exit
             if user_input is None:
                 break  # END of test
 
-            # workflow commands
-            if user_input == 'wait':
-                while True:
-                    print("Type 'c' to continue... ", end='')
-                    if input().strip() == 'c':
-                        break
-                redo_test = True
-                continue  # Go into the next loop (word)
-            elif user_input == '?':
+            # ==== workflow commands ====
+            if user_input == '?':
                 if self._bank.cheatsheet is not None:
                     print("Cheatsheet:")
                     print(self._bank.cheatsheet)
                 else:
                     print("No cheatsheet found!")
+            # hack: ? will fall through
+            if user_input in ['?', 'wait']:
+                should_exit = False
+                while True:
+                    print("Type 'c' to continue... ", end='')
+                    try:
+                        if input().strip() == 'c':
+                            break
+                    except (EOFError, KeyboardInterrupt):
+                        should_exit = True
+                        break
+                if should_exit:
+                    break
                 redo_test = True
-                continue
+                continue  # Go into the next loop (word)
 
+            # ===== check results =====
             if isinstance(test_value, list):
                 correct = user_input in test_value
             else:
