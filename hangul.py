@@ -46,30 +46,43 @@ vowel = {
     # yi is only used by Unicode
 }
 
+vowel_groups = {
+    'single': ['base', 'ybase'],
+    'all': ['base', 'ybase', 'double'],
+}
+
+
+def collect_sets(sets, valid, groups):
+    newsets = set()
+    for s in sets:
+        if s in groups:
+            newsets.update(groups[s])
+        elif s in valid:
+            newsets.add(s)
+        else:
+            raise ValueError(f'Invalid set name {s}')
+    return newsets
+
 
 # Older manually written table function, but still keep it.
-def gen_vowel_table():
-    #  set = ("base", "ybase")
-    set = ("double",)
-    #  set = ("base", "ybase", "double")
+def gen_vowel_table(sets):
+    sets = collect_sets(sets, vowel, vowel_groups)
 
     table = { hangul: romaja.split('/')
-            for name in set
+            for name in sets
             for romaja, hangul in zip(vowel[name][0].split(),
                                       vowel[name][1].split())
             }
 
     cheatsheet = ""
-    if "base" in set or "ybase" in set:
+    if "base" in sets or "ybase" in sets:
         cheatsheet = cheatsheet_vowel_base
-    if "double" in set:
+    if "double" in sets:
         cheatsheet += cheatsheet_vowel_double
     if cheatsheet == "":
         cheatsheet = None
 
-    return TestBank(voice=find_voice('ko_KR'),
-                    table=table,
-                    cheatsheet=cheatsheet)
+    return table, cheatsheet
 
 
 # https://www.reddit.com/r/Korean/comments/11fr8b8/is_there_a_full_listchart_of_hangul_and_batchim/
@@ -192,6 +205,19 @@ Jamo_T = {
     }
 }
 
+consonant_groups = {
+    'base': ['plain'],
+    'double': ['tense'],
+    'aspirated': ['asp'],
+    'all': ['plain', 'tense', 'asp'],
+}
+
+patchim_groups = {
+    'nonempty': ['single', 'double'],
+    'all': ['empty', 'single', 'double'],
+}
+
+
 # constants
 SBase = 0xAC00
 LBase = 0x1100
@@ -204,7 +230,8 @@ TCount = 28
 NCount = VCount * TCount
 
 
-def gen_set(jamo, names):
+def gen_set(jamo, jamo_groups, names):
+    names = collect_sets(names, jamo, jamo_groups)
     table = {}
     for name in names:
         table |= jamo[name]
@@ -222,13 +249,11 @@ def get_alias(orig, alias):
         raise ValueError(f"Bug: Invalid alias value type {type(alias)}")
 
 
-def gen_letter_table(jamo, default_setnames, codebase):
+def gen_letter_table(jamo, codebase, jamo_groups):
 
-    def gen_table(setnames=None):
+    def gen_table(setnames):
 
-        setnames = default_setnames if setnames is None else setnames
-
-        set = gen_set(jamo, setnames)
+        set = gen_set(jamo, jamo_groups, setnames)
 
         table = {}
 
@@ -238,24 +263,20 @@ def gen_letter_table(jamo, default_setnames, codebase):
             romajas = [name.lower() for name in name_full]
             table[chr(codepoint)] = romajas
 
-        return TestBank(voice=find_voice('ko_KR'),
-                        table=table)
+        return table, None
 
     return gen_table
 
 
-gen_consonant_table = gen_letter_table(Jamo_L, ['plain'], LBase)
-gen_patchim_table = gen_letter_table(Jamo_T, ['single'], TBase)
+gen_consonant_table = gen_letter_table(Jamo_L, LBase, consonant_groups)
+gen_patchim_table = gen_letter_table(Jamo_T, TBase, patchim_groups)
 
 
-def gen_syllable_table():
-    lsetnames = ['plain']
-    vsetnames = ['double']
-    tsetnames = ['empty']
+def gen_syllable_table(lsetnames, vsetnames, tsetnames):
 
-    lset = gen_set(Jamo_L, lsetnames)
-    vset = gen_set(Jamo_V, vsetnames)
-    tset = gen_set(Jamo_T, tsetnames)
+    lset = gen_set(Jamo_L, consonant_groups, lsetnames)
+    vset = gen_set(Jamo_V, vowel_groups, vsetnames)
+    tset = gen_set(Jamo_T, patchim_groups, tsetnames)
 
     table = {}
 
@@ -276,32 +297,93 @@ def gen_syllable_table():
 
                 table[chr(codepoint)] = romajas
 
-    return TestBank(voice=find_voice('ko_KR'),
-                    table=table)
+    return table, None
 
 
-def gen_hangul_table():
+def gen_hangul_table(sets):
     """\
-    panikku hangul <sets..>
-        consonant:plain(base),tense(double),asp[irated],all
+sets:
+    consonant:plain(base),tense(double),asp[irated],all
                     Custom consonant set
-        vowel:base,ybase,double,single,all
+    vowel:base,ybase,double,single,all
                     Custom vowel set
-        consonant   All consonants
-        vowel       All vowels
-        patchim:single,double
+    patchim:single,double,nonempty,all
                     Basically only used for learning patchim romanize rule
-        [syllable:]<consonant..>+<vowel..>[+<patchim..>]
-                    Comma separated list.  Mesh generate all combinations.
-                    Examples:  base,double,asp+ybase,double  all+base+double
-        lv          All LV  (leading+vowel)
-        lvt         All LVT (leading+vowel+patchim)
-        all         All LV+LVT
 
-    Future: support parsing combination name like 'ga'
-    """
+    [syllable:]<consonant..>*<vowel..>[*<patchim..>]
+                    LVT components separated by * or +.  Each component is a
+                    comma (,) separated list.  Mesh generates all combinations.
+                    Examples:  base,double,asp+ybase,double  all*all*single
 
-    #  return gen_vowel_table()
-    return gen_consonant_table()
-    #  return gen_patchim_table()
-    #  return gen_syllable_table()
+    consonant       All consonants
+    vowel           All vowels
+    patchim         Non-empty patchims
+    lv              All LV  (leading+vowel)
+    lvt             All LVT (leading+vowel+patchim)
+    syllable|all    All LV+LVT
+
+Future: support parsing combination name like 'ga'
+Future: change argument parsing to custom parser
+"""
+
+    table = {}
+    cheatsheet = ""
+
+    for s in sets:
+        parts = s.split(':')
+
+        if len(parts) == 0 or len(parts) > 2:
+            raise ValueError(f'Invalid set {s!r}')
+
+        t, c = None, None
+
+        if len(parts) == 1:
+            settype = parts[0]
+            if settype == 'all' or settype == 'syllable':
+                t, c = gen_syllable_table(['all'], ['all'], ['all'])
+            elif settype == 'lvt':
+                t, c = gen_syllable_table(['all'], ['all'], ['nonempty'])
+            elif settype == 'lv':
+                t, c = gen_syllable_table(['all'], ['all'], ['empty'])
+            elif settype == 'vowel':
+                t, c = gen_vowel_table(['all'])
+            elif settype == 'consonant':
+                t, c = gen_consonant_table(['all'])
+            elif settype == 'patchim':
+                t, c = gen_patchim_table(['nonempty'])
+            else:
+                parts = ['syllable', parts[0]]
+
+        # optional 'syllable' will fall through to here
+        if len(parts) == 2:
+            settype = parts[0]
+            if settype == 'vowel':
+                t, c = gen_vowel_table(parts[1].split(','))
+            elif settype == 'consonant':
+                t, c = gen_consonant_table(parts[1].split(','))
+            elif settype == 'patchim':
+                t, c = gen_patchim_table(parts[1].split(','))
+            elif settype == 'syllable':
+                subparts = [y for x in parts[1].split('*') for y in x.split('+')]
+                if len(subparts) == 2:
+                    t, c = gen_syllable_table(subparts[0].split(','),
+                                              subparts[1].split(','), ['empty'])
+                elif len(subparts) == 3:
+                    t, c = gen_syllable_table(subparts[0].split(','),
+                                              subparts[1].split(','),
+                                              subparts[2].split(','))
+                else:
+                    raise ValueError(f'Invalid syllable component {s!r}!')
+            else:
+                raise ValueError(f'Invalid set type {settype!r}!')
+
+        assert(t is not None)
+
+        table.update(t)
+        if c is not None:
+            cheatsheet += c
+
+    if cheatsheet.strip() == "":
+        cheatsheet = None
+
+    return TestBank(voice=find_voice('ko_KR'), table=table, cheatsheet=cheatsheet)

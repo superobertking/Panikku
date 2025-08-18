@@ -125,13 +125,13 @@ def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=Fal
     postfixes = ['normal', 'normal_special', 'dakuon',
                  'dakuon_special', 'yoon_normal', 'yoon_dakuon']
 
+    if type not in ['hira', 'kata']:
+        raise ValueError(f'Unknown kana type: {type}')
+
     kana = {}
-    if type == 'hira' or type == 'kata':
-        for postfix in postfixes:
-            kana[postfix] = globals()[type + '_' + postfix]
-    else:
-        return {}
-    v = vars()
+    for postfix in postfixes:
+        kana[postfix] = globals()[type + '_' + postfix]
+    #  v = vars()
 
     kana_table = {}
 
