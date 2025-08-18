@@ -4,8 +4,10 @@
 from tester import Tester, TesterOptions
 from kana import gen_kana_table
 from hangul import gen_hangul_table
+from jis import gen_jis_symbol_table
 
 import argparse
+
 
 parser = argparse.ArgumentParser("Panikku")
 parser.add_argument('--no-say', action='store_true', default=False,
@@ -14,7 +16,8 @@ parser.add_argument('--no-say', action='store_true', default=False,
 
 def gen_testset():
     #  table = gen_kana_table(type='kata')
-    table = gen_hangul_table()
+    #  table = gen_hangul_table()
+    table = gen_jis_symbol_table('us')
     return table
 
 
