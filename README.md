@@ -94,4 +94,4 @@ Unvisited vocabularies:
 ## TODO
 
  - Customizable weight algorithm
- - Typing test
+ - TODO: test set argument parsing

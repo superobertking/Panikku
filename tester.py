@@ -63,16 +63,27 @@ class Sampler:
 @dataclass
 class TesterOptions:
     say: bool = False
+    typing: bool = False
 
 
 class Tester:
     """\
     Tester class.
+
+    If the input table is a set, the test_bank.typing is ignored.
     """
 
     def __init__(self, test_bank: TestBank, options: TesterOptions = None):
-        # shorthand of table
-        self._table = test_bank.table
+        if isinstance(test_bank.table, set):
+            self._table = {k: k for k in test_bank.table}
+        elif isinstance(test_bank.table, dict):
+            if options.typing:
+                self._table = {k: k for k in test_bank.table}
+            else:
+                self._table = test_bank.table
+        else:
+            raise ValueError("test_bank.table is not set or dict type")
+
         # store the original bank that contains other settings
         self._bank = test_bank
         self._options = TesterOptions() if options is None else options
