@@ -4,6 +4,24 @@ from test_bank import TestBank, find_voice
 # Glossary
 # Hangul: 谚文 (한글)
 
+
+# This module contains two systems of consonant, vowel, and patchims---an older
+# combinational character standard and Unicode standard.
+# Since IME (at least the macOS one) uses the former one when typing only
+# the jamos, and converts to Unicode when converted to hangul, we will as well
+# use older standard code page for jamos and Unicode for hangul.
+
+# Below are manually written maps from the Hangul Compatibility Jamo code page
+#
+# https://www.reddit.com/r/Korean/comments/11fr8b8/is_there_a_full_listchart_of_hangul_and_batchim/
+# Initial: ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ
+# Vowel:   ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ
+# Final:   ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ (null)
+#
+# Full character table: https://en.wikipedia.org/wiki/Hangul_Syllables
+# https://en.wikipedia.org/wiki/Hangul#Consonants
+# https://en.wikipedia.org/wiki/Revised_Romanization_of_Korean#Conversion_process
+
 cheatsheet_vowel_base = """\
 ㅏ a
 ㅓeo: 熬 (接近拼音ao,收口腔,发音位置更靠前,或国际音标ə(or的o))
@@ -36,6 +54,8 @@ ui:
 """
 
 
+# The romanization mixes the Unicode representation/standard romanization/sound
+
 vowel = {
     "base":     ("a  eo  o  u   eu i",
                  "ㅏ ㅓ  ㅗ ㅜ  ㅡ ㅣ"),
@@ -51,6 +71,35 @@ vowel_groups = {
     'all': ['base', 'ybase', 'double'],
 }
 
+consonant = {
+    "plain": ("g/k n  d/t r/l m  b/p s  x  j  h",
+              "ㄱ  ㄴ ㄷ  ㄹ  ㅁ ㅂ  ㅅ ㅇ ㅈ ㅎ"),
+    "tense": ("c/ch k  t  p",
+              "ㅊ   ㅋ ㅌ ㅍ"),
+    "asp":   ("gg/kk dd/tt bb/pp ss jj",
+              "ㄲ    ㄸ    ㅃ    ㅆ ㅉ"),
+}
+
+consonant_groups = {
+    'base': ['plain'],
+    'double': ['tense'],
+    'aspirated': ['asp'],
+    'all': ['plain', 'tense', 'asp'],
+}
+
+patchim = {
+    "empty":    ("x", "x"),
+    "single":   ("g/k gg/k n  d/t l  m  b/p s/t ss/t ng j/t c/t k  t  p  h/t",
+                 "ㄱ  ㄲ   ㄴ ㄷ  ㄹ ㅁ ㅂ  ㅅ  ㅆ   ㅇ ㅈ  ㅊ  ㅋ ㅌ ㅍ ㅎ"),
+    "double":   ("gs/g/k nj/n nh/n lg/g/k lm/m lb/l ls/l lt/l lp/p lh/l bs/b/p",
+                 "ㄳ     ㄵ   ㄶ   ㄺ     ㄻ   ㄼ   ㄽ   ㄾ   ㄿ   ㅀ   ㅄ"),
+}
+
+patchim_groups = {
+    'nonempty': ['single', 'double'],
+    'all': ['empty', 'single', 'double'],
+}
+
 
 def collect_sets(sets, valid, groups):
     newsets = set()
@@ -64,15 +113,33 @@ def collect_sets(sets, valid, groups):
     return newsets
 
 
-# Older manually written table function, but still keep it.
+def gen_letter_table(sets, jamos, jamos_groups):
+    sets = collect_sets(sets, jamos, jamos_groups)
+
+    table = {
+        hangul.replace('x', ''): [x.replace('x', '') for x in romaja.split('/')]
+        for name in sets
+        for romaja, hangul in zip(jamos[name][0].split(),
+                                  jamos[name][1].split())
+    }
+
+    return table
+
+
+def gen_consonant_table(sets):
+    table = gen_letter_table(sets, consonant, consonant_groups)
+    return table, None
+
+
+def gen_patchim_table(sets):
+    table = gen_letter_table(sets, patchim, patchim_groups)
+    return table, None
+
+
 def gen_vowel_table(sets):
     sets = collect_sets(sets, vowel, vowel_groups)
 
-    table = { hangul: romaja.split('/')
-            for name in sets
-            for romaja, hangul in zip(vowel[name][0].split(),
-                                      vowel[name][1].split())
-            }
+    table = gen_letter_table(sets, vowel, vowel_groups)
 
     cheatsheet = ""
     if "base" in sets or "ybase" in sets:
@@ -85,15 +152,6 @@ def gen_vowel_table(sets):
     return table, cheatsheet
 
 
-# https://www.reddit.com/r/Korean/comments/11fr8b8/is_there_a_full_listchart_of_hangul_and_batchim/
-# Initial: ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ
-# Vowel:   ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ
-# Final:   ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ (null)
-#
-# Full character table: https://en.wikipedia.org/wiki/Hangul_Syllables
-# https://en.wikipedia.org/wiki/Hangul#Consonants
-# https://en.wikipedia.org/wiki/Revised_Romanization_of_Korean#Conversion_process
-#
 # Digging into the macOS Character Viewer:
 # plistutil -p /System/Library/Input\ Methods/CharacterPalette.app/Contents/Resources/Category-HalfwidthHangul.plist
 # sqlite3 /System/Library/Input\ Methods/CharacterPalette.app/Contents/Resources/CharacterDB.sqlite3 \
@@ -103,6 +161,8 @@ def gen_vowel_table(sets):
 # The Unicode official name is actually dynamically generated..
 # /System/Library/Perl/5.34/unicore/Name.pm
 
+
+# Below are Unicode handling code only for hanguls.
 # Below are converted from unicore/Name.pm
 
 # Leading consonant (can be null)
@@ -126,9 +186,9 @@ Jamo_L = {
         'P': (17,  None),
     },
     'asp': {
-        'GG': (1,  None),
-        'DD': (4,  None),
-        'BB': (8,  None),
+        'GG': (1,  'kk'),
+        'DD': (4,  'tt'),
+        'BB': (8,  'pp'),
         'SS': (10, None),
         'JJ': (13, None),
     },
@@ -177,7 +237,7 @@ Jamo_T = {
         'GG': (2,  'k'),
         'N':  (4,  None),
         'D':  (7,  't'),
-        'L':  (8,  'l'),
+        'L':  (8,  None),
         'M':  (16, None),
         'B':  (17, 'p'),
         'S':  (19, 't'),
@@ -191,39 +251,26 @@ Jamo_T = {
         'H':  (27, 't'),
     },
     'double': {
-        'GS': (3,  'S'),
-        'NJ': (5,  'J'),
-        'NH': (6,  'H'),
-        'LG': (9,  'G'),
-        'LB': (11, 'B'),
-        'LH': (15, 'H'),
-        'LM': (10, 'M'),
-        'LP': (14, 'P'),
-        'LS': (12, 'S'),
-        'LT': (13, 'T'),
-        'BS': (18, 'S'),
+        'GS': (3,  ['g', 'k']),
+        'NJ': (5,  'n'),
+        'NH': (6,  'n'),
+        'LG': (9,  ['g', 'k']),
+        'LB': (11, 'l'),
+        'LM': (10, 'm'),
+        'LS': (12, 'l'),
+        'LT': (13, 'l'),
+        'LP': (14, 'p'),
+        'LH': (15, 'l'),
+        'BS': (18, ['b', 'p']),
     }
-}
-
-consonant_groups = {
-    'base': ['plain'],
-    'double': ['tense'],
-    'aspirated': ['asp'],
-    'all': ['plain', 'tense', 'asp'],
-}
-
-patchim_groups = {
-    'nonempty': ['single', 'double'],
-    'all': ['empty', 'single', 'double'],
 }
 
 
 # constants
 SBase = 0xAC00
-LBase = 0x1100
-VBase = 0x1161
-TBase = 0x11A7
-SCount = 11172
+# LBase = 0x1100
+# VBase = 0x1161
+# TBase = 0x11A7
 LCount = 19
 VCount = 21
 TCount = 28
@@ -249,27 +296,29 @@ def get_alias(orig, alias):
         raise ValueError(f"Bug: Invalid alias value type {type(alias)}")
 
 
-def gen_letter_table(jamo, codebase, jamo_groups):
-
-    def gen_table(setnames):
-
-        set = gen_set(jamo, jamo_groups, setnames)
-
-        table = {}
-
-        for name, (code, name_alias) in set.items():
-            codepoint = codebase + code;
-            name_full = get_alias(name, name_alias)
-            romajas = [name.lower() for name in name_full]
-            table[chr(codepoint)] = romajas
-
-        return table, None
-
-    return gen_table
-
-
-gen_consonant_table = gen_letter_table(Jamo_L, LBase, consonant_groups)
-gen_patchim_table = gen_letter_table(Jamo_T, TBase, patchim_groups)
+# Deprecated Unicode letter table generation
+#
+# def gen_letter_table(jamo, codebase, jamo_groups):
+#
+#     def gen_table(setnames):
+#
+#         set = gen_set(jamo, jamo_groups, setnames)
+#
+#         table = {}
+#
+#         for name, (code, name_alias) in set.items():
+#             codepoint = codebase + code;
+#             name_full = get_alias(name, name_alias)
+#             romajas = [name.lower() for name in name_full]
+#             table[chr(codepoint)] = romajas
+#
+#         return table, None
+#
+#     return gen_table
+#
+#
+# gen_consonant_table = gen_letter_table(Jamo_L, LBase, consonant_groups)
+# gen_patchim_table = gen_letter_table(Jamo_T, TBase, patchim_groups)
 
 
 def gen_syllable_table(lsetnames, vsetnames, tsetnames):
