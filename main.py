@@ -4,7 +4,7 @@
 from tester import Tester, TesterOptions
 from kana import gen_kana_table
 from hangul import gen_hangul_table
-from jis import gen_jis_symbol_table
+import jis
 
 import argparse
 import dataclasses
@@ -46,6 +46,10 @@ jis_parser = subparsers.add_parser('jis')
 jis_parser.add_argument('base', nargs='?', default='jis', choices=('jis', 'us'),
                         help='The base physical keyboard to use (default: jis).')
 
+jis_kana_parser = subparsers.add_parser('jiskana')
+jis_kana_parser.add_argument('base', choices=('us',),
+                             help='The base physical keyboard to use.')
+
 
 def gen_testset(args):
 
@@ -66,7 +70,9 @@ def gen_testset(args):
         table = gen_hangul_table(args.sets)
 
     elif args.dataset == 'jis':
-        table = gen_jis_symbol_table(args.base)
+        table = jis.gen_jis_symbol_table(args.base)
+    elif args.dataset == 'jiskana':
+        table = jis.gen_jis_kana_table(args.base)
     else:
         raise ValueError(f'Unknown dataset name {args.dataset}')
 
