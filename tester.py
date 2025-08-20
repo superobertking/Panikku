@@ -63,7 +63,12 @@ class Sampler:
 @dataclass
 class TesterOptions:
     say: bool = False
+    say_first: bool = False
+    notify_wrong: bool = False
     typing: bool = False
+    recitation: bool = False
+    reverse: bool = False
+    voice: str = None
 
 
 class Tester:
@@ -84,9 +89,22 @@ class Tester:
         else:
             raise ValueError("test_bank.table is not set or dict type")
 
+        self.voice = test_bank.voice if options.voice is None else options.voice
+
         # store the original bank that contains other settings
         self._bank = test_bank
         self._options = TesterOptions() if options is None else options
+
+        if self._options.recitation and self.voice is None:
+            raise ValueError(f'Cannot support recitation: no voice found!')
+
+        if self._options.recitation:
+            self._options.say = True
+            self._options.say_first = True
+        else:
+            if self.voice is None:
+                self._options.say = False
+
 
     @staticmethod
     def _time_user_input():
@@ -132,6 +150,14 @@ class Tester:
         histogram = {}
         sampler = Sampler(self._table.keys(), [1.0] * len(self._table))
 
+        if self._options.say:
+            print("Using voice:", self.voice)
+            if not 'Premium' in self.voice and not 'Enhanced' in self.voice:
+                print("""\
+For best TTS voice clarity, please download a Premium or Enhanced voice in
+System Settings -> Accessibility -> Spoken Content -> System Voice -> Manage Voices
+""")
+
         print("Loaded test set size:", len(self._table))
 
         print("Press CTRL-D (^D) to finish test and print testing weights.\n"
@@ -148,15 +174,44 @@ class Tester:
                 idx, test_key = sampler()
                 test_value = self._table[test_key]
 
+                # key, value used for accounting; display, answer used for
+                # user interaction
+                if self._options.reverse:
+                    test_display, test_answer = test_value, test_key
+                else:
+                    test_display, test_answer = test_key, test_value
+
+                test_display_str = test_display
+                test_answer_str = test_answer
+                if isinstance(test_display, list):
+                    test_display_str = '/'.join(test_display)
+                if isinstance(test_answer, list):
+                    test_answer_str = '/'.join(test_answer)
+
             # Start once test
-            print(f"'{test_key}' is: ", end='')
+            if self._options.say and self._options.say_first:
+                os.system(f"say -v '{self.voice}' {test_key} &")
+            # special: show the word if there is any same sound word
+            if self._options.recitation and not test_key in self._bank.same_sound:
+                print(f"Spoken word is: ", end='')
+            else:
+                print(f"{test_display_str!r} is: ", end='')
             user_input, duration = self._time_user_input()
 
             # ^C or ^D, exit
             if user_input is None:
                 break  # END of test
 
+            # ===== check results =====
+            if isinstance(test_answer, list):
+                correct = user_input in test_answer
+            else:
+                correct = user_input == test_answer
+
             # ==== workflow commands ====
+            if user_input == '' and not correct:
+                redo_test = True
+                continue
             if user_input == '?':
                 if self._bank.cheatsheet is not None:
                     print("Cheatsheet:")
@@ -181,23 +236,16 @@ class Tester:
                 redo_test = True
                 continue  # Go into the next loop (word)
 
-            # ===== check results =====
-            if isinstance(test_value, list):
-                correct = user_input in test_value
-            else:
-                correct = user_input == test_value
-
             # Display result
             if correct:
                 print(f"Correct! Time elapsed {duration:6f}s.")
             else:
-                test_value_str = test_value
-                if isinstance(test_value, list):
-                    test_value_str = '/'.join(test_value)
-                print(f"Wrong! It should be '{test_value_str}'.")
-            # Say the word
-            if self._options.say and self._bank.voice is not None:
-                os.system(f"say -v '{self._bank.voice}' {test_key} &")
+                print(f"Wrong! It should be {test_answer_str!r}.")
+                if self._options.notify_wrong:
+                    os.system(f"say -v Samantha --rate 200 'Wrong answer!'")
+            # Say the word at last (if not recitation)
+            if self._options.say and not self._options.say_first:
+                os.system(f"say -v {self.voice!r} {test_key!r} &")
 
             # Update weights
             sampler.update_weights(lambda ws: self._update_weights(

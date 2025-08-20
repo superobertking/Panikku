@@ -64,7 +64,7 @@ hira_yoon_dakuon = (
 )
 
 kata_normal = (
-    ("", "アイウエオ"),
+    ("",  "アイウエオ"),
     ("k", "カキクケコ"),
     ("s", "サシスセソ"),
     ("t", "タチツテト"),
@@ -118,12 +118,14 @@ hira_yoon_vowels = ("auo", "ゃゅょ")
 kata_yoon_vowels = ("auo", "ャュョ")
 #  kata_yoon_vowels = ("aueo", "ャュェョ")
 
+same_sound = set('ヲオおをヘエへえ')
+
 
 def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=False,
                    type='hira'):
 
     postfixes = ['normal', 'normal_special', 'dakuon',
-                 'dakuon_special', 'yoon_normal', 'yoon_dakuon']
+                 'dakuon_special', 'yoon_normal', 'yoon_dakuon', 'yoon_vowels']
 
     if type not in ['hira', 'kata']:
         raise ValueError(f'Unknown kana type: {type}')
@@ -131,7 +133,6 @@ def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=Fal
     kana = {}
     for postfix in postfixes:
         kana[postfix] = globals()[type + '_' + postfix]
-    #  v = vars()
 
     kana_table = {}
 
@@ -151,4 +152,5 @@ def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=Fal
                            for e, c in zip(*kana['yoon_vowels'])})
 
     #  print(kana_table)
-    return TestBank(table=kana_table, voice=find_voice('ja_JP'))
+    #  TODO: filter same sound based on generated table, instead of static
+    return TestBank(table=kana_table, voice=find_voice('ja_JP'), same_sound=same_sound)

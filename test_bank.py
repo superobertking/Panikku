@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 from types import FunctionType
 import subprocess
@@ -9,6 +9,7 @@ class TestBank:
     table: Dict[str, str]
     voice: str = None
     cheatsheet: str = None
+    same_sound: set = field(default_factory=set)
 
 
 def find_voice(lang: str, filter=None, search: str = None):

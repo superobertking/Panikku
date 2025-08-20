@@ -7,13 +7,24 @@ from hangul import gen_hangul_table
 from jis import gen_jis_symbol_table
 
 import argparse
+import dataclasses
 
 
 parser = argparse.ArgumentParser("panikku")
 parser.add_argument('--no-say', action='store_true', default=False,
                     help="Say the word using TTS after each quiz")
+parser.add_argument('--say-first', action='store_true', default=False,
+        help="Say the word before each quiz. Otherwise, say it after each quiz.")
+parser.add_argument('--notify-wrong', action='store_true', default=False,
+        help="Notify wrong answer by saying 'wrong answer'.")
 parser.add_argument('--typing', action='store_true', default=False,
                     help="Typing test instead of default romanization quiz")
+parser.add_argument('--reverse', action='store_true', default=False,
+                    help="Reverse romanization and character")
+parser.add_argument('--recitation', action='store_true', default=False,
+        help="Play sound first and do not show the character (implies --say and --say-first)")
+parser.add_argument('-v', '--voice', default=None,
+        help="Override voice choice")
 
 subparsers = parser.add_subparsers(dest='dataset', required=True)
 
@@ -65,17 +76,13 @@ def gen_testset(args):
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    options = TesterOptions(say=not args.no_say, typing=args.typing)
+    options = TesterOptions(say=not args.no_say)
+
+    for f in dataclasses.fields(TesterOptions):
+        if f.name != 'say':
+            options.__dict__[f.name] = args.__dict__[f.name]
 
     test_bank = gen_testset(args)
-
-    if options.say and test_bank.voice is not None:
-        print("Using voice:", test_bank.voice)
-        if not 'Premium' in test_bank.voice and not 'Enhanced' in test_bank.voice:
-            print("""\
-For best TTS voice clarity, please download a Premium or Enhanced voice in
-System Settings -> Accessibility -> Spoken Content -> System Voice -> Manage Voices
-""")
 
     tester = Tester(test_bank, options)
     tester()
