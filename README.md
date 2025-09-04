@@ -18,6 +18,7 @@ Personal toy project. Written when I was trying to memorize Japanese kana. It ca
 - Summary of the test
 - Special command for the user to take a short break :)
 - Special command to show cheat sheet (not all datasets have one).
+- [Fish shell](https://fishshell.com) completion
 
 ## Datasets
 
@@ -103,6 +104,13 @@ Correct rate stats:
 フ: 37/42, 10.321055
 Unvisited vocabularies:
 {'タ', 'ト', 'ル', 'キ', 'ユ', 'コ', 'ニ', 'ク', 'ノ', 'ホ', 'ミ', 'ヤ', 'ン'}
+```
+
+### Fish Completion
+
+```fish
+echo 'alias panikku (realpath main.py)' >> ~/.config/fish/config.fish
+ln -s (realpath panikku_completion.fish) ~/.config/fish/completions/panikku.fish
 ```
 
 ### APIs
