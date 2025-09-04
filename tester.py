@@ -138,9 +138,9 @@ class Tester:
         else:
             new_weight += 10.0
 
-        # Update weights based on type time
+        # Update weights based on typing time
         # add 0.2 weight of (duration - 1.5s per kana)
-        # len(test_key) mush be at least 1
+        # len(test_key) must be at least 1
         new_weight = new_weight + 0.2 * (duration - 1.5 * len(test_key))
         # Commit new weight
         weights[idx] = max(new_weight, 0.01)

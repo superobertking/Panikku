@@ -72,8 +72,8 @@ vowel_groups = {
 }
 
 consonant = {
-    "plain": ("g/k n  d/t r/l m  b/p s  x  j  h",
-              "ㄱ  ㄴ ㄷ  ㄹ  ㅁ ㅂ  ㅅ ㅇ ㅈ ㅎ"),
+    "plain": ("g  n  d  r/l m  b  s  x  j  h",
+              "ㄱ ㄴ ㄷ ㄹ  ㅁ ㅂ ㅅ ㅇ ㅈ ㅎ"),
     "tense": ("c/ch k  t  p",
               "ㅊ   ㅋ ㅌ ㅍ"),
     "asp":   ("gg/kk dd/tt bb/pp ss jj",

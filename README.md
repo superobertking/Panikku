@@ -34,15 +34,25 @@ Currently supported modules:
 Global usage for `main.py`:
 
 ```text
-usage: panikku [-h] [--no-say] [--typing] {hiragana,katakana,hangul,jis} ...
+usage: panikku [-h] [--no-say] [--say-first] [--notify-wrong] [--typing]
+               [--reverse] [--recitation] [-v VOICE]
+               {hiragana,katakana,hangul,jis,jiskana} ...
 
 positional arguments:
-  {hiragana,katakana,hangul,jis}
+  {hiragana,katakana,hangul,jis,jiskana}
 
 optional arguments:
   -h, --help            show this help message and exit
   --no-say              Say the word using TTS after each quiz
+  --say-first           Say the word before each quiz. Otherwise, say it after
+                        each quiz.
+  --notify-wrong        Notify wrong answer by saying 'wrong answer'.
   --typing              Typing test instead of default romanization quiz
+  --reverse             Reverse romanization and character
+  --recitation          Play sound first and do not show the character
+                        (implies --say and --say-first)
+  -v VOICE, --voice VOICE
+                        Override voice choice
 ```
 
 Usage of each dataset can be get from `./main.py <dataset> -h`. The general

@@ -22,7 +22,7 @@ def gen_jis_symbol_table(base: str):
 def gen_jis_kana_table(base: str):
     us_map = [
         ("1234567890)-",    "ぬふあうえおやゆよわをほ"),
-        ("qwertyuiop[\\",   "たていすかんなにらせむへ"),
+        ("qwertyuiop]\\",   "たていすかんなにらせむへ"),
         ("asdfghjkl;'\"",   "ちとしはきくまのりれけろ"),
         ("zxcvbnm,./",      "つさそひこみもねるめ"),
     ]

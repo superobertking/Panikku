@@ -118,7 +118,7 @@ hira_yoon_vowels = ("auo", "ゃゅょ")
 kata_yoon_vowels = ("auo", "ャュョ")
 #  kata_yoon_vowels = ("aueo", "ャュェョ")
 
-same_sound = set('ヲオおをヘエへえ')
+same_sound = set('ヲオおをヘエへえヂジぢじずづズヅ')
 
 
 def gen_kana_table(normal=True, dakuon=False, yoon_normal=False, yoon_dakuon=False,
